@@ -107,18 +107,24 @@ export default function Home() {
   };
 
   const handleSaveLearning = async () => {
-    if (!learningInput.subject.trim()) return;
+    console.log("Saving learning:", learningInput);
+    if (!learningInput.subject.trim()) {
+      console.log("Subject empty");
+      return;
+    }
     try {
       await addDoc(collection(db, "learning"), {
         period: Number(learningInput.period),
         subject: learningInput.subject,
         createdAt: Timestamp.now(),
       });
+      console.log("Save success");
       setLearningInput({ period: 1, subject: "" });
       setIsLearningModalOpen(false);
       toast.success("오늘의 학습이 업데이트되었습니다! 📚");
-    } catch (e) {
-      toast.error("저장에 실패했습니다.");
+    } catch (e: any) {
+      console.error("Save failed:", e);
+      toast.error(`저장에 실패했습니다: ${e.message}`);
     }
   };
 

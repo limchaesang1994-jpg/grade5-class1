@@ -322,8 +322,10 @@
 .modal {
   background: white;
   width: 90%;
-  max-width: 500px;
-  padding: 2rem;
+  max-width: 800px;
+  /* Increased from 500px for desktop */
+  padding: 2.5rem;
+  /* Increased padding */
   border-radius: 30px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   display: flex;

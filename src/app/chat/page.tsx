@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, orderBy, onSnapshot, Timestamp, limit } from "firebase/firestore";
+import { collection, addDoc, query, orderBy, onSnapshot, Timestamp, limit, deleteDoc, doc } from "firebase/firestore";
 import { toast } from "react-hot-toast";
 import styles from "./chat.module.css";
-import { Send, Smile, User as UserIcon, ChevronLeft } from "lucide-react";
+import { Send, Smile, User as UserIcon, ChevronLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 export default function ChatPage() {
@@ -55,6 +55,19 @@ export default function ChatPage() {
         }
     };
 
+    const handleDeleteMessage = async (msgId: string) => {
+        if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
+        try {
+            await deleteDoc(doc(db, "chats", msgId));
+            toast.success("메시지가 삭제되었습니다.");
+        } catch (error) {
+            console.error("Delete error:", error);
+            toast.error("삭제 실패");
+        }
+    };
+
+    const isTeacher = user?.email?.toLowerCase() === "chaesang@korea.kr";
+
     return (
         <div className={styles.container}>
             <Link href="/" className={styles.backBtn}>
@@ -90,6 +103,15 @@ export default function ChatPage() {
                                     <span className={styles.time}>
                                         {msg.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
+                                    {isTeacher && (
+                                        <button
+                                            onClick={() => handleDeleteMessage(msg.id)}
+                                            className={styles.msgDeleteBtn}
+                                            title="메시지 삭제"
+                                        >
+                                            <Trash2 size={12} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
