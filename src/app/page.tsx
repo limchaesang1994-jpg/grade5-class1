@@ -5,24 +5,29 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, limit } from "firebase/firestore";
-import { Megaphone, Utensils, BookOpen, GraduationCap } from "lucide-react";
+import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp } from "firebase/firestore";
+import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function Home() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [notices, setNotices] = useState<any[]>([]);
   const [lunch, setLunch] = useState<any>(null);
   const [learning, setLearning] = useState<any[]>([]);
+
+  // Admin states
+  const isTeacher = user?.email === "chaesang@korea.kr";
+  const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
+  const [isLearningModalOpen, setIsLearningModalOpen] = useState(false);
+  const [noticeInput, setNoticeInput] = useState("");
+  const [learningInput, setLearningInput] = useState({ period: 1, subject: "" });
 
   useEffect(() => {
     // Real-time listener for Notices
     const qNotice = query(collection(db, "notices"), orderBy("createdAt", "desc"), limit(3));
     const unsubscribeNotice = onSnapshot(qNotice, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setNotices(data.length > 0 ? data : [
-        { id: "1", content: "알림장 섹션입니다." },
-        { id: "2", content: "우리 반 소식을 확인하세요!" }
-      ]);
+      setNotices(data);
     });
 
     // NEIS API for Lunch
@@ -46,7 +51,6 @@ export default function Home() {
 
         if (data.mealServiceDietInfo) {
           const menuRaw = data.mealServiceDietInfo[1].row[0].DDISH_NM;
-          // Clean menu: remove allergy info (numbers and dots in parentheses)
           const menuClean = menuRaw
             .replace(/\([^)]*\)/g, '')
             .split('<br/>')
@@ -71,12 +75,8 @@ export default function Home() {
     // Real-time listener for Learning
     const qLearning = query(collection(db, "learning"), orderBy("period", "asc"));
     const unsubscribeLearning = onSnapshot(qLearning, (snapshot) => {
-      const data = snapshot.docs.map(doc => doc.data());
-      setLearning(data.length > 0 ? data : [
-        { period: 1, subject: "국어: 비유하는 표현" },
-        { period: 2, subject: "수학: 분수의 덧셈" },
-        { period: 3, subject: "영어: How much is it?" }
-      ]);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setLearning(data);
     });
 
     return () => {
@@ -84,6 +84,37 @@ export default function Home() {
       unsubscribeLearning();
     };
   }, []);
+
+  const handleSaveNotice = async () => {
+    if (!noticeInput.trim()) return;
+    try {
+      await addDoc(collection(db, "notices"), {
+        content: noticeInput,
+        createdAt: Timestamp.now(),
+      });
+      setNoticeInput("");
+      setIsNoticeModalOpen(false);
+      toast.success("알림장이 등록되었습니다! 📢");
+    } catch (e) {
+      toast.error("저장에 실패했습니다.");
+    }
+  };
+
+  const handleSaveLearning = async () => {
+    if (!learningInput.subject.trim()) return;
+    try {
+      await addDoc(collection(db, "learning"), {
+        period: Number(learningInput.period),
+        subject: learningInput.subject,
+        createdAt: Timestamp.now(),
+      });
+      setLearningInput({ period: 1, subject: "" });
+      setIsLearningModalOpen(false);
+      toast.success("오늘의 학습이 업데이트되었습니다! 📚");
+    } catch (e) {
+      toast.error("저장에 실패했습니다.");
+    }
+  };
 
 
   return (
@@ -114,11 +145,18 @@ export default function Home() {
                 <Megaphone size={24} color="#3b82f6" />
               </div>
               <h2>알림장</h2>
+              {isTeacher && (
+                <button onClick={() => setIsNoticeModalOpen(true)} className={styles.adminBtn}>
+                  <Edit3 size={16} /> 글쓰기
+                </button>
+              )}
             </div>
             <ul className={styles.list}>
-              {notices.map((n) => (
-                <li key={n.id}>{n.content}</li>
-              ))}
+              {notices.length > 0 ? (
+                notices.map((n) => <li key={n.id}>{n.content}</li>)
+              ) : (
+                <p className={styles.emptyText}>등록된 소식이 없어요.</p>
+              )}
             </ul>
             <button className={styles.moreBtn}>더 보기</button>
           </div>
@@ -147,19 +185,76 @@ export default function Home() {
                 <BookOpen size={24} color="#eab308" />
               </div>
               <h2>오늘의 학습</h2>
+              {isTeacher && (
+                <button onClick={() => setIsLearningModalOpen(true)} className={styles.adminBtn}>
+                  <Edit3 size={16} /> 글쓰기
+                </button>
+              )}
             </div>
             <div className={styles.learningSteps}>
-              {learning.map((step, i) => (
-                <div key={i} className={styles.step}>
-                  <span className={styles.stepNum}>{step.period}교시</span>
-                  <p>{step.subject}</p>
-                </div>
-              ))}
+              {learning.length > 0 ? (
+                learning.map((step, i) => (
+                  <div key={i} className={styles.step}>
+                    <span className={styles.stepNum}>{step.period}교시</span>
+                    <p>{step.subject}</p>
+                  </div>
+                ))
+              ) : (
+                <p className={styles.emptyText}>학습 일정이 없어요.</p>
+              )}
             </div>
             <button className={styles.moreBtn}>학습 안내서</button>
           </div>
         </div>
       </main>
+
+      {/* Admin Modals */}
+      {isNoticeModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>새 알림장 등록</h3>
+              <button onClick={() => setIsNoticeModalOpen(false)}><X size={20} /></button>
+            </div>
+            <textarea
+              value={noticeInput}
+              onChange={(e) => setNoticeInput(e.target.value)}
+              placeholder="친구들에게 전할 내용을 입력하세요."
+              rows={5}
+            />
+            <button className={styles.saveBtn} onClick={handleSaveNotice}>저장하기</button>
+          </div>
+        </div>
+      )}
+
+      {isLearningModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>오늘의 학습 추가</h3>
+              <button onClick={() => setIsLearningModalOpen(false)}><X size={20} /></button>
+            </div>
+            <div className={styles.inputGroup}>
+              <label>교시</label>
+              <input
+                type="number"
+                value={learningInput.period}
+                onChange={(e) => setLearningInput({ ...learningInput, period: Number(e.target.value) })}
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label>과목/내용</label>
+              <input
+                type="text"
+                value={learningInput.subject}
+                onChange={(e) => setLearningInput({ ...learningInput, subject: e.target.value })}
+                placeholder="예: 국어 - 비유하는 표현"
+              />
+            </div>
+            <button className={styles.saveBtn} onClick={handleSaveLearning}>저장하기</button>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className={styles.footer}>

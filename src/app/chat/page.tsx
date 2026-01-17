@@ -17,7 +17,7 @@ export default function ChatPage() {
 
     useEffect(() => {
         const q = query(
-            collection(db, "messages"),
+            collection(db, "chats"),
             orderBy("createdAt", "desc"),
             limit(50)
         );
@@ -41,7 +41,7 @@ export default function ChatPage() {
         if (!user || !newMessage.trim()) return;
 
         try {
-            await addDoc(collection(db, "messages"), {
+            await addDoc(collection(db, "chats"), {
                 text: newMessage,
                 userId: user.uid,
                 userName: user.displayName || user.email?.split("@")[0],
