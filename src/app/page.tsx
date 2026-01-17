@@ -5,8 +5,8 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp } from "firebase/firestore";
-import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X } from "lucide-react";
+import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc } from "firebase/firestore";
+import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function Home() {
@@ -16,11 +16,17 @@ export default function Home() {
   const [learning, setLearning] = useState<any[]>([]);
 
   // Admin states
-  const isTeacher = user?.email === "chaesang@korea.kr";
+  const isTeacher = user?.email?.toLowerCase() === "chaesang@korea.kr";
+
+  // Write Modals
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [isLearningModalOpen, setIsLearningModalOpen] = useState(false);
   const [noticeInput, setNoticeInput] = useState("");
   const [learningInput, setLearningInput] = useState({ period: 1, subject: "" });
+
+  // Detail Modals
+  const [selectedNotice, setSelectedNotice] = useState<any>(null);
+  const [selectedLearning, setSelectedLearning] = useState<any>(null);
 
   useEffect(() => {
     // Real-time listener for Notices
@@ -116,6 +122,32 @@ export default function Home() {
     }
   };
 
+  const handleDeleteNotice = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("정말 이 알림장을 삭제하시겠습니까?")) {
+      try {
+        await deleteDoc(doc(db, "notices", id));
+        toast.success("삭제되었습니다.");
+        if (selectedNotice?.id === id) setSelectedNotice(null);
+      } catch (error) {
+        toast.error("삭제 실패");
+      }
+    }
+  };
+
+  const handleDeleteLearning = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("정말 이 학습 내용을 삭제하시겠습니까?")) {
+      try {
+        await deleteDoc(doc(db, "learning", id));
+        toast.success("삭제되었습니다.");
+        if (selectedLearning?.id === id) setSelectedLearning(null);
+      } catch (error) {
+        toast.error("삭제 실패");
+      }
+    }
+  };
+
 
   return (
     <div className={styles.container}>
@@ -153,7 +185,24 @@ export default function Home() {
             </div>
             <ul className={styles.list}>
               {notices.length > 0 ? (
-                notices.map((n) => <li key={n.id}>{n.content}</li>)
+                notices.map((n) => (
+                  <li
+                    key={n.id}
+                    onClick={() => setSelectedNotice(n)}
+                    className={styles.clickableItem}
+                  >
+                    <span className={styles.liContent}>{n.content}</span>
+                    {isTeacher && (
+                      <button
+                        onClick={(e) => handleDeleteNotice(n.id, e)}
+                        className={styles.deleteBtn}
+                        title="삭제"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </li>
+                ))
               ) : (
                 <p className={styles.emptyText}>등록된 소식이 없어요.</p>
               )}
@@ -194,9 +243,22 @@ export default function Home() {
             <div className={styles.learningSteps}>
               {learning.length > 0 ? (
                 learning.map((step, i) => (
-                  <div key={i} className={styles.step}>
+                  <div
+                    key={i}
+                    className={`${styles.step} ${styles.clickableItem}`}
+                    onClick={() => setSelectedLearning(step)}
+                  >
                     <span className={styles.stepNum}>{step.period}교시</span>
-                    <p>{step.subject}</p>
+                    <p className={styles.stepContent}>{step.subject}</p>
+                    {isTeacher && (
+                      <button
+                        onClick={(e) => handleDeleteLearning(step.id, e)}
+                        className={styles.deleteBtn}
+                        title="삭제"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (
@@ -208,7 +270,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Admin Modals */}
+      {/* Write Modals */}
       {isNoticeModalOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
@@ -256,6 +318,55 @@ export default function Home() {
         </div>
       )}
 
+      {/* Detail Modals */}
+      {selectedNotice && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedNotice(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>📢 알림장 상세</h3>
+              <button onClick={() => setSelectedNotice(null)}><X size={20} /></button>
+            </div>
+            <div className={styles.detailContent}>
+              <p className={styles.detailText}>{selectedNotice.content}</p>
+              <span className={styles.detailDate}>
+                {selectedNotice.createdAt?.toDate().toLocaleString()}
+              </span>
+            </div>
+            {isTeacher && (
+              <button
+                onClick={(e) => handleDeleteNotice(selectedNotice.id, e)}
+                className={styles.deleteActionBtn}
+              >
+                삭제하기
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {selectedLearning && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedLearning(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>📚 학습 상세</h3>
+              <button onClick={() => setSelectedLearning(null)}><X size={20} /></button>
+            </div>
+            <div className={styles.detailContent}>
+              <div className={styles.learningBadge}>{selectedLearning.period}교시</div>
+              <p className={styles.detailText}>{selectedLearning.subject}</p>
+            </div>
+            {isTeacher && (
+              <button
+                onClick={(e) => handleDeleteLearning(selectedLearning.id, e)}
+                className={styles.deleteActionBtn}
+              >
+                삭제하기
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer className={styles.footer}>
         <p>© 2026 성장하는 5학년 1반. All rights reserved.</p>
@@ -263,5 +374,3 @@ export default function Home() {
     </div>
   );
 }
-
-
