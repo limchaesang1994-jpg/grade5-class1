@@ -5,7 +5,7 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -22,6 +22,7 @@ export default function Home() {
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [isLearningModalOpen, setIsLearningModalOpen] = useState(false);
   const [noticeInput, setNoticeInput] = useState("");
+  const [editingNoticeId, setEditingNoticeId] = useState<string | null>(null);
   const [learningInput, setLearningInput] = useState<string[]>(["", "", "", "", "", ""]);
 
   // Detail Modals
@@ -94,16 +95,32 @@ export default function Home() {
   const handleSaveNotice = async () => {
     if (!noticeInput.trim()) return;
     try {
-      await addDoc(collection(db, "notices"), {
-        content: noticeInput,
-        createdAt: Timestamp.now(),
-      });
+      if (editingNoticeId) {
+        await updateDoc(doc(db, "notices", editingNoticeId), {
+          content: noticeInput,
+          updatedAt: Timestamp.now(),
+        });
+        toast.success("알림장이 수정되었습니다! ✏️");
+      } else {
+        await addDoc(collection(db, "notices"), {
+          content: noticeInput,
+          createdAt: Timestamp.now(),
+        });
+        toast.success("알림장이 등록되었습니다! 📢");
+      }
       setNoticeInput("");
+      setEditingNoticeId(null);
       setIsNoticeModalOpen(false);
-      toast.success("알림장이 등록되었습니다! 📢");
     } catch (e) {
       toast.error("저장에 실패했습니다.");
     }
+  };
+
+  const handleEditNoticeClick = (notice: any) => {
+    setEditingNoticeId(notice.id);
+    setNoticeInput(notice.content);
+    setSelectedNotice(null);
+    setIsNoticeModalOpen(true);
   };
 
   const handleSaveLearning = async () => {
@@ -227,7 +244,11 @@ export default function Home() {
               </div>
               <h2>알림장</h2>
               {isTeacher && (
-                <button onClick={() => setIsNoticeModalOpen(true)} className={styles.adminBtn}>
+                <button onClick={() => {
+                  setEditingNoticeId(null);
+                  setNoticeInput("");
+                  setIsNoticeModalOpen(true);
+                }} className={styles.adminBtn}>
                   <Edit3 size={16} /> 글쓰기
                 </button>
               )}
@@ -324,8 +345,12 @@ export default function Home() {
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h3>새 알림장 등록</h3>
-              <button onClick={() => setIsNoticeModalOpen(false)}><X size={20} /></button>
+              <h3>{editingNoticeId ? "알림장 수정" : "새 알림장 등록"}</h3>
+              <button onClick={() => {
+                setIsNoticeModalOpen(false);
+                setEditingNoticeId(null);
+                setNoticeInput("");
+              }}><X size={20} /></button>
             </div>
             <textarea
               value={noticeInput}
@@ -382,12 +407,20 @@ export default function Home() {
               </span>
             </div>
             {isTeacher && (
-              <button
-                onClick={(e) => handleDeleteNotice(selectedNotice.id, e)}
-                className={styles.deleteActionBtn}
-              >
-                삭제하기
-              </button>
+              <div className={styles.actionGroup}>
+                <button
+                  onClick={() => handleEditNoticeClick(selectedNotice)}
+                  className={styles.editActionBtn}
+                >
+                  수정하기
+                </button>
+                <button
+                  onClick={(e) => handleDeleteNotice(selectedNotice.id, e)}
+                  className={styles.deleteActionBtn}
+                >
+                  삭제하기
+                </button>
+              </div>
             )}
           </div>
         </div>

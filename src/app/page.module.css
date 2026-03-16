@@ -562,7 +562,7 @@
 }
 
 .deleteActionBtn {
-  width: 100%;
+  flex: 1;
   padding: 1rem;
   background-color: #fff0f0;
   color: #ff4d4d;
@@ -572,11 +572,33 @@
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 1rem;
 }
 
 .deleteActionBtn:hover {
   background-color: #ffe0e0;
+}
+
+.editActionBtn {
+  flex: 1;
+  padding: 1rem;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editActionBtn:hover {
+  background-color: #dbeafe;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .learningBadge {
