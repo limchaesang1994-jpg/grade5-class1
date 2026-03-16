@@ -80,13 +80,35 @@
     font-size: 1.1rem;
 }
 
+.stickyNotice {
+    background-color: #fefce8;
+    border: 1px solid #fef08a;
+    color: #854d0e;
+    padding: 0.8rem 1.5rem;
+    margin: 1rem auto 0;
+    max-width: 900px;
+    width: 90%;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    z-index: 5;
+}
+
+.noticeIcon {
+    flex-shrink: 0;
+}
+
 .chatWrapper {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     max-width: 900px;
     width: 90%;
-    margin: 2rem auto;
+    margin: 1rem auto 2rem;
     background: white;
     border-radius: 30px;
     box-shadow: var(--shadow);

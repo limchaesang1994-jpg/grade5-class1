@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, addDoc, query, orderBy, onSnapshot, Timestamp, limit, deleteDoc, doc } from "firebase/firestore";
 import { toast } from "react-hot-toast";
 import styles from "./chat.module.css";
-import { Send, Smile, User as UserIcon, ChevronLeft, Trash2 } from "lucide-react";
+import { Send, Smile, User as UserIcon, ChevronLeft, Trash2, Info } from "lucide-react";
 import Link from "next/link";
 
 export default function ChatPage() {
@@ -79,6 +79,11 @@ export default function ChatPage() {
                 <h1>💬 우리들의 수다방</h1>
                 <p>5학년 1반 친구들의 실시간 오픈채팅공간입니다.</p>
             </header>
+
+            <div className={styles.stickyNotice}>
+                <Info size={18} className={styles.noticeIcon} />
+                <p>내가 사용하는 말은 친구들에게 보이는 나의 모습입니다. 언어 예절을 지키며 대화해요. 💖</p>
+            </div>
 
             <div className={styles.chatWrapper}>
                 <div className={styles.messageList} ref={scrollRef}>
