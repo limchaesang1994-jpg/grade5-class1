@@ -22,7 +22,7 @@ export default function Home() {
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [isLearningModalOpen, setIsLearningModalOpen] = useState(false);
   const [noticeInput, setNoticeInput] = useState("");
-  const [learningInput, setLearningInput] = useState({ period: 1, subject: "" });
+  const [learningInput, setLearningInput] = useState<string[]>(["", "", "", "", "", ""]);
 
   // Detail Modals
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
@@ -107,21 +107,28 @@ export default function Home() {
   };
 
   const handleSaveLearning = async () => {
-    console.log("Saving learning:", learningInput);
-    if (!learningInput.subject.trim()) {
-      console.log("Subject empty");
-      return;
-    }
     try {
-      await addDoc(collection(db, "learning"), {
-        period: Number(learningInput.period),
-        subject: learningInput.subject,
-        createdAt: Timestamp.now(),
-      });
-      console.log("Save success");
-      setLearningInput({ period: 1, subject: "" });
+      let savedCount = 0;
+      for (let i = 0; i < 6; i++) {
+        const subject = learningInput[i].trim();
+        if (subject) {
+          await addDoc(collection(db, "learning"), {
+            period: i + 1,
+            subject: subject,
+            createdAt: Timestamp.now(),
+          });
+          savedCount++;
+        }
+      }
+      
+      if (savedCount === 0) {
+        toast.error("입력된 과목이 없습니다.");
+        return;
+      }
+      
+      setLearningInput(["", "", "", "", "", ""]);
       setIsLearningModalOpen(false);
-      toast.success("오늘의 학습이 업데이트되었습니다! 📚");
+      toast.success("시간표가 업데이트되었습니다! 📚");
     } catch (e: any) {
       console.error("Save failed:", e);
       toast.error(`저장에 실패했습니다: ${e.message}`);
@@ -270,7 +277,7 @@ export default function Home() {
               <div className={`${styles.iconCircle} ${styles.yellow}`}>
                 <BookOpen size={24} color="#eab308" />
               </div>
-              <h2>오늘의 학습</h2>
+              <h2>시간표</h2>
               {isTeacher && (
                 <button onClick={() => setIsLearningModalOpen(true)} className={styles.adminBtn}>
                   <Edit3 size={16} /> 글쓰기
@@ -330,25 +337,25 @@ export default function Home() {
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h3>오늘의 학습 추가</h3>
+              <h3>시간표 추가</h3>
               <button onClick={() => setIsLearningModalOpen(false)}><X size={20} /></button>
             </div>
-            <div className={styles.inputGroup}>
-              <label>교시</label>
-              <input
-                type="number"
-                value={learningInput.period}
-                onChange={(e) => setLearningInput({ ...learningInput, period: Number(e.target.value) })}
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <label>과목/내용</label>
-              <input
-                type="text"
-                value={learningInput.subject}
-                onChange={(e) => setLearningInput({ ...learningInput, subject: e.target.value })}
-                placeholder="예: 국어 - 비유하는 표현"
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem' }}>
+              {[1, 2, 3, 4, 5, 6].map((period, index) => (
+                <div className={styles.inputGroup} key={period}>
+                  <label>{period}교시</label>
+                  <input
+                    type="text"
+                    value={learningInput[index]}
+                    onChange={(e) => {
+                      const newInputs = [...learningInput];
+                      newInputs[index] = e.target.value;
+                      setLearningInput(newInputs);
+                    }}
+                    placeholder={`예: 수학`}
+                  />
+                </div>
+              ))}
             </div>
             <button className={styles.saveBtn} onClick={handleSaveLearning}>저장하기</button>
           </div>
@@ -385,7 +392,7 @@ export default function Home() {
         <div className={styles.modalOverlay} onClick={() => setSelectedLearning(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>📚 학습 상세</h3>
+              <h3>📚 시간표 상세</h3>
               <button onClick={() => setSelectedLearning(null)}><X size={20} /></button>
             </div>
             <div className={styles.detailContent}>
