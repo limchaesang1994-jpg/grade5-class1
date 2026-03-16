@@ -108,6 +108,11 @@ export default function Home() {
 
   const handleSaveLearning = async () => {
     try {
+      // First, delete existing timetable entries
+      for (const item of learning) {
+        await deleteDoc(doc(db, "learning", item.id));
+      }
+
       let savedCount = 0;
       for (let i = 0; i < 6; i++) {
         const subject = learningInput[i].trim();
