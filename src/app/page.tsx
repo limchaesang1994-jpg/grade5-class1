@@ -6,7 +6,7 @@ import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc } from "firebase/firestore";
-import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2 } from "lucide-react";
+import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function Home() {
@@ -175,6 +175,37 @@ export default function Home() {
 
       {/* Feature Cards */}
       <main className={styles.main} id="notices">
+        
+        {/* Learning Shortcuts Section */}
+        <section className={styles.shortcutsSection}>
+          <h2 className={styles.sectionTitle}>학습 바로가기</h2>
+          <div className={styles.shortcutsGrid}>
+            <a 
+              href="https://classroom.google.com/c/ODUxODIyNTQ2NTE4?cjc=wzvp5mz3" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={styles.shortcutCard}
+            >
+              <div className={`${styles.shortcutIcon} ${styles.green}`}>
+                <Presentation size={32} color="#16a34a" />
+              </div>
+              <span className={styles.shortcutName}>구글 클래스룸</span>
+            </a>
+            
+            <a 
+              href="https://hi.goe.go.kr/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={styles.shortcutCard}
+            >
+              <div className={`${styles.shortcutIcon} ${styles.purple}`}>
+                <Tablet size={32} color="#9333ea" />
+              </div>
+              <span className={styles.shortcutName}>하이러닝</span>
+            </a>
+          </div>
+        </section>
+
         <div className={styles.cardGrid}>
           {/* Notification Card */}
           <div className={`${styles.card} ${styles.notice}`}>
