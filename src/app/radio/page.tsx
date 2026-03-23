@@ -38,6 +38,7 @@ export default function RadioPage() {
       toast.success("신청곡이 등록되었습니다! 🎵");
       setRadioInput("");
     } catch (error) {
+      console.error("Radio Request Error:", error);
       toast.error("신청곡 등록에 실패했습니다.");
     }
   };

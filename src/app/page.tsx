@@ -6,14 +6,20 @@ import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet } from "lucide-react";
+import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet, Gift } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { studentData, Student } from "@/students";
 
 export default function Home() {
   const { user } = useAuth();
   const [notices, setNotices] = useState<any[]>([]);
   const [lunch, setLunch] = useState<any>(null);
   const [learning, setLearning] = useState<any[]>([]);
+
+  // Birthday states
+  const [birthdayMessages, setBirthdayMessages] = useState<any[]>([]);
+  const [bdayMessageInput, setBdayMessageInput] = useState("");
+  const [todayBirthdayStudents, setTodayBirthdayStudents] = useState<Student[]>([]);
 
   // Admin states
   const isTeacher = user?.email?.toLowerCase() === "chaesang@korea.kr";
@@ -28,6 +34,27 @@ export default function Home() {
   // Detail Modals
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
   const [selectedLearning, setSelectedLearning] = useState<any>(null);
+
+  useEffect(() => {
+    // Check birthdays
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayString = `${month}-${day}`;
+    
+    // Default test value if needed: const todayString = "11-11";
+    const birthdayKids = studentData.filter(s => s.birthday === todayString);
+    setTodayBirthdayStudents(birthdayKids);
+
+    if (birthdayKids.length > 0) {
+      const qBday = query(collection(db, "birthdayMessages"), orderBy("createdAt", "desc"));
+      const unsubscribeBday = onSnapshot(qBday, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setBirthdayMessages(data);
+      });
+      return () => unsubscribeBday();
+    }
+  }, []);
 
   useEffect(() => {
     // Real-time listener for Notices
@@ -183,6 +210,36 @@ export default function Home() {
     }
   };
 
+  const handleSaveBirthdayMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bdayMessageInput.trim()) return;
+
+    try {
+      await addDoc(collection(db, "birthdayMessages"), {
+        content: bdayMessageInput.trim(),
+        author: user?.displayName || user?.email?.split('@')[0] || "익명",
+        createdAt: Timestamp.now(),
+      });
+      toast.success("축하 메시지가 등록되었습니다! 🎂");
+      setBdayMessageInput("");
+    } catch (error) {
+      console.error("Birthday message error:", error);
+      toast.error("등록에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteBirthdayMessage = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("정말 이 축하 메시지를 삭제하시겠습니까?")) {
+      try {
+        await deleteDoc(doc(db, "birthdayMessages", id));
+        toast.success("메시지가 삭제되었습니다.");
+      } catch (error) {
+        toast.error("삭제 실패");
+      }
+    }
+  };
+
 
   return (
     <div className={styles.container}>
@@ -205,6 +262,49 @@ export default function Home() {
       {/* Feature Cards */}
       <main className={styles.main} id="notices">
         
+        {/* Birthday Banner */}
+        {todayBirthdayStudents.length > 0 && (
+          <section className={styles.birthdaySection}>
+            <div className={styles.birthdayHeader}>
+              <Gift size={32} color="#f43f5e" />
+              <h2>🎉 오늘은 {todayBirthdayStudents.map(s => s.name).join(", ")} 친구의 생일입니다! 🎉</h2>
+            </div>
+            <p className={styles.birthdaySub}>
+              따뜻한 축하의 한마디를 남겨주세요!
+            </p>
+            <form className={styles.birthdayForm} onSubmit={handleSaveBirthdayMessage}>
+              <input
+                type="text"
+                className={styles.birthdayInput}
+                value={bdayMessageInput}
+                onChange={(e) => setBdayMessageInput(e.target.value)}
+                placeholder="축하 메시지를 입력하세요"
+                required
+              />
+              <button type="submit" className={styles.birthdaySubmitBtn}>축하해요!</button>
+            </form>
+            <div className={styles.birthdayMessagesList}>
+              {birthdayMessages.map((msg) => (
+                <div key={msg.id} className={styles.birthdayMessageItem}>
+                  <div className={styles.birthdayMessageContent}>
+                    <span className={styles.bdayText}>{msg.content}</span>
+                    <span className={styles.bdayAuthor}>- {msg.author}</span>
+                  </div>
+                  {isTeacher && (
+                    <button
+                      onClick={(e) => handleDeleteBirthdayMessage(msg.id, e)}
+                      className={styles.deleteBdayBtn}
+                      title="삭제"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Learning Shortcuts Section */}
         <section className={styles.shortcutsSection}>
           <h2 className={styles.sectionTitle}>학습 바로가기</h2>

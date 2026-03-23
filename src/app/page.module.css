@@ -611,3 +611,134 @@
   font-weight: bold;
   font-size: 0.9rem;
 }
+
+/* Birthday Section */
+.birthdaySection {
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+  padding: 2.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 3rem;
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.15);
+  border: 2px solid #fecdd3;
+  text-align: center;
+}
+
+.birthdayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.birthdayHeader h2 {
+  font-size: 2rem;
+  color: #e11d48;
+}
+
+.birthdaySub {
+  font-size: 1.2rem;
+  color: #881337;
+  margin-bottom: 2rem;
+}
+
+.birthdayForm {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.birthdayInput {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: 2px solid #fda4af;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.birthdayInput:focus {
+  outline: none;
+  border-color: #e11d48;
+}
+
+.birthdaySubmitBtn {
+  background-color: #f43f5e;
+  color: white;
+  padding: 0 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
+}
+
+.birthdaySubmitBtn:hover {
+  background-color: #e11d48;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
+}
+
+.birthdayMessagesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.birthdayMessageItem {
+  background-color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #ffe4e6;
+  position: relative;
+}
+
+.birthdayMessageContent {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.bdayText {
+  font-weight: bold;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.bdayAuthor {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.deleteBdayBtn {
+  background: white;
+  border: 1px solid #ffcccc;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff6b6b;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteBdayBtn:hover {
+  background-color: #ff6b6b;
+  color: white;
+}
