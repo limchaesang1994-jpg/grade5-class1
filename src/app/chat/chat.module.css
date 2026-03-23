@@ -279,15 +279,69 @@
     transform: scale(1.1);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+    .header {
+        padding: 4rem 1rem 1.5rem 1rem;
+    }
+
+    .backBtn {
+        top: 1rem;
+        left: 1rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
     .header h1 {
         font-size: 1.8rem;
     }
 
+    .header p {
+        font-size: 0.95rem;
+    }
+
+    .stickyNotice {
+        width: 95%;
+        padding: 0.8rem;
+        font-size: 0.85rem;
+        margin: 0.5rem auto 0;
+    }
+
     .chatWrapper {
         width: 100%;
-        margin: 0;
-        height: 100%;
-        border-radius: 0;
+        margin: 0.5rem 0 0 0;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .messageList {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .messageItem {
+        max-width: 95%;
+    }
+
+    .bubble {
+        padding: 0.8rem 1rem;
+    }
+
+    .bubble p {
+        font-size: 1rem;
+    }
+
+    .inputArea {
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+
+    .inputArea input {
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+    }
+
+    .profile img,
+    .avatarPlaceholder {
+        width: 35px;
+        height: 35px;
     }
 }
