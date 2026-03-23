@@ -361,7 +361,12 @@ export default function Home() {
                     onClick={() => setSelectedNotice(n)}
                     className={styles.clickableItem}
                   >
-                    <span className={styles.liContent}>{n.content}</span>
+                    <div className={styles.noticeItemContent}>
+                      <span className={styles.noticeItemDate}>
+                        {n.createdAt?.toDate().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+                      </span>
+                      <span className={styles.liContent}>{n.content}</span>
+                    </div>
                     {isTeacher && (
                       <button
                         onClick={(e) => handleDeleteNotice(n.id, e)}
@@ -443,23 +448,25 @@ export default function Home() {
 
       {/* Write Modals */}
       {isNoticeModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h3>{editingNoticeId ? "알림장 수정" : "새 알림장 등록"}</h3>
+        <div className={styles.chalkboardOverlay}>
+          <div className={styles.chalkboardModal}>
+            <div className={styles.chalkboardHeader}>
+              <span className={styles.chalkboardDate}>
+                {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+              </span>
               <button onClick={() => {
                 setIsNoticeModalOpen(false);
                 setEditingNoticeId(null);
                 setNoticeInput("");
-              }}><X size={20} /></button>
+              }} className={styles.chalkboardCloseBtn}><X size={40} /></button>
             </div>
             <textarea
+              className={styles.chalkboardTextarea}
               value={noticeInput}
               onChange={(e) => setNoticeInput(e.target.value)}
-              placeholder="친구들에게 전할 내용을 입력하세요."
-              rows={5}
+              placeholder=""
             />
-            <button className={styles.saveBtn} onClick={handleSaveNotice}>저장하기</button>
+            <button className={styles.chalkboardSaveBtn} onClick={handleSaveNotice}>알림장 작성 완료</button>
           </div>
         </div>
       )}
