@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import styles from "./Navbar.module.css";
-import { GraduationCap, Send, MessageCircle, LogOut } from "lucide-react";
+import { GraduationCap, Send, MessageCircle, LogOut, Radio } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
@@ -23,6 +23,10 @@ export default function Navbar() {
                 <Link href="/assignments" className={`${styles.navItem} ${pathname === "/assignments" ? styles.active : ""}`}>
                     <Send size={18} />
                     <span>과제 제출</span>
+                </Link>
+                <Link href="/radio" className={`${styles.navItem} ${pathname === "/radio" ? styles.active : ""}`}>
+                    <Radio size={18} />
+                    <span>신청곡</span>
                 </Link>
                 <Link href="/chat" className={`${styles.navItem} ${pathname === "/chat" ? styles.active : ""}`}>
                     <MessageCircle size={18} />
