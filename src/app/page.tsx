@@ -6,7 +6,7 @@ import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet } from "lucide-react";
+import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet, Radio } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function Home() {
@@ -14,6 +14,8 @@ export default function Home() {
   const [notices, setNotices] = useState<any[]>([]);
   const [lunch, setLunch] = useState<any>(null);
   const [learning, setLearning] = useState<any[]>([]);
+  const [radioRequests, setRadioRequests] = useState<any[]>([]);
+  const [radioInput, setRadioInput] = useState("");
 
   // Admin states
   const isTeacher = user?.email?.toLowerCase() === "chaesang@korea.kr";
@@ -86,9 +88,17 @@ export default function Home() {
       setLearning(data);
     });
 
+    // Real-time listener for Radio
+    const qRadio = query(collection(db, "radio"), orderBy("createdAt", "desc"));
+    const unsubscribeRadio = onSnapshot(qRadio, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRadioRequests(data);
+    });
+
     return () => {
       unsubscribeNotice();
       unsubscribeLearning();
+      unsubscribeRadio();
     };
   }, []);
 
@@ -177,6 +187,34 @@ export default function Home() {
         await deleteDoc(doc(db, "learning", id));
         toast.success("삭제되었습니다.");
         if (selectedLearning?.id === id) setSelectedLearning(null);
+      } catch (error) {
+        toast.error("삭제 실패");
+      }
+    }
+  };
+
+  const handleSubmitRadioRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!radioInput.trim()) return;
+    
+    try {
+      await addDoc(collection(db, "radio"), {
+        content: radioInput.trim(),
+        author: user?.displayName || user?.email?.split('@')[0] || "익명",
+        createdAt: Timestamp.now(),
+      });
+      toast.success("신청곡이 등록되었습니다! 🎵");
+      setRadioInput("");
+    } catch (error) {
+      toast.error("신청곡 등록에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteRadioRequest = async (id: string) => {
+    if (confirm("정말 이 신청곡을 삭제하시겠습니까?")) {
+      try {
+        await deleteDoc(doc(db, "radio", id));
+        toast.success("삭제되었습니다.");
       } catch (error) {
         toast.error("삭제 실패");
       }
@@ -338,6 +376,52 @@ export default function Home() {
             <button className={styles.moreBtn}>학습 안내서</button>
           </div>
         </div>
+
+        {/* Radio Request Section */}
+        <section className={styles.radioSection}>
+          <div className={styles.radioHeader}>
+            <div className={`${styles.iconCircle} ${styles.purple}`}>
+              <Radio size={24} color="#9333ea" />
+            </div>
+            <h2>5-1 라디오 신청곡</h2>
+          </div>
+          
+          <form className={styles.radioForm} onSubmit={handleSubmitRadioRequest}>
+            <input
+              type="text"
+              className={styles.radioInput}
+              value={radioInput}
+              onChange={(e) => setRadioInput(e.target.value)}
+              placeholder="[곡 제목 / 가수]를 입력해주세요"
+              required
+            />
+            <button type="submit" className={styles.radioSubmitBtn}>신청하기</button>
+          </form>
+
+          <div className={styles.radioList}>
+            {radioRequests.length > 0 ? (
+              radioRequests.map((req) => (
+                <div key={req.id} className={styles.radioItem}>
+                  <div className={styles.radioContent}>
+                    <span className={styles.radioText}>{req.content}</span>
+                    <span className={styles.radioAuthor}>- {req.author} 친구</span>
+                  </div>
+                  {isTeacher && (
+                    <button
+                      onClick={() => handleDeleteRadioRequest(req.id)}
+                      className={styles.deleteRadioBtn}
+                      title="삭제"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className={styles.emptyText}>아직 신청곡이 없어요. 첫 번째로 신청해보세요!</p>
+            )}
+          </div>
+        </section>
       </main>
 
       {/* Write Modals */}

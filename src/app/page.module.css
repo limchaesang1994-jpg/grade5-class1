@@ -223,6 +223,10 @@
   background-color: #fefce8;
 }
 
+.iconCircle.purple {
+  background-color: #f3e8ff;
+}
+
 .card h2 {
   font-size: 1.8rem;
   color: #333;
@@ -609,4 +613,128 @@
   border-radius: 20px;
   font-weight: bold;
   font-size: 0.9rem;
+}
+
+/* Radio Section Styles */
+.radioSection {
+  margin-top: 3rem;
+  background: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border-top: 8px solid #a855f7;
+}
+
+.radioHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.radioHeader h2 {
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.radioForm {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.radioInput {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: 2px solid #f0f0f0;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.radioInput:focus {
+  outline: none;
+  border-color: #a855f7;
+}
+
+.radioSubmitBtn {
+  background-color: #a855f7;
+  color: white;
+  padding: 0 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+}
+
+.radioSubmitBtn:hover {
+  background-color: #9333ea;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+}
+
+.radioList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.radioItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: #faf5ff;
+  border-radius: 15px;
+  transition: transform 0.2s;
+  border: 1px solid #f3e8ff;
+}
+
+.radioItem:hover {
+  transform: translateX(5px);
+  background-color: #f3e8ff;
+}
+
+.radioContent {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.radioText {
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: bold;
+}
+
+.radioAuthor {
+  font-size: 0.95rem;
+  color: #888;
+}
+
+.deleteRadioBtn {
+  background: white;
+  border: 1px solid #ffcccc;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff6b6b;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteRadioBtn:hover {
+  background-color: #ff6b6b;
+  color: white;
+  transform: scale(1.1);
 }
