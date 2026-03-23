@@ -5,7 +5,7 @@ export interface Student {
 }
 
 export const studentData: Student[] = [
-    { id: 1, name: "강민재", birthday: "03-23" },
+    { id: 1, name: "강민재", birthday: "11-11" },
     { id: 2, name: "공리안", birthday: "08-08" },
     { id: 3, name: "김단영", birthday: "09-08" },
     { id: 4, name: "김승현", birthday: "10-23" },
