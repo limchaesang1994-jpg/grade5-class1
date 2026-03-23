@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import styles from "./Navbar.module.css";
-import { GraduationCap, Home, Megaphone, Send, MessageCircle, LogOut } from "lucide-react";
+import { GraduationCap, Send, MessageCircle, LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
@@ -14,19 +14,12 @@ export default function Navbar() {
 
     return (
         <nav className={styles.navbar}>
-            <div className={styles.logo}>
+            <Link href="/" className={styles.logo}>
                 <GraduationCap className={styles.logoIcon} />
                 <span>5-1 Class</span>
-            </div>
+            </Link>
             <div className={styles.navLinks}>
-                <Link href="/" className={`${styles.navItem} ${pathname === "/" ? styles.active : ""}`}>
-                    <Home size={18} />
-                    <span>홈</span>
-                </Link>
-                <Link href="/#notices" className={styles.navItem}>
-                    <Megaphone size={18} />
-                    <span>알림장/학습</span>
-                </Link>
+
                 <Link href="/assignments" className={`${styles.navItem} ${pathname === "/assignments" ? styles.active : ""}`}>
                     <Send size={18} />
                     <span>과제 제출</span>
