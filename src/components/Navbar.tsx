@@ -3,14 +3,38 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import styles from "./Navbar.module.css";
-import { GraduationCap, Send, MessageCircle, LogOut, Radio, User as UserIcon, X } from "lucide-react";
+import { GraduationCap, Send, MessageCircle, LogOut, Radio, User as UserIcon, X, ShieldAlert, CheckCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { toast } from "react-hot-toast";
 
 export default function Navbar() {
     const { user, logout, updateUserProfile } = useAuth();
     const pathname = usePathname();
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+    const [bannedUsers, setBannedUsers] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (isAdminModalOpen) {
+            const unsub = onSnapshot(collection(db, "bannedUsers"), (snapshot) => {
+                setBannedUsers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            });
+            return () => unsub();
+        }
+    }, [isAdminModalOpen]);
+
+    const handleUnban = async (userId: string) => {
+        if (!confirm("해당 학생의 정지를 해제하시겠습니까?")) return;
+        try {
+            await deleteDoc(doc(db, "bannedUsers", userId));
+            toast.success("정지가 해제되었습니다.");
+        } catch (e) {
+            toast.error("해제 실패");
+        }
+    };
 
     const animalEmojis = [
         "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨",
@@ -32,7 +56,18 @@ export default function Navbar() {
         return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
     };
 
-    const AVATARS = animalEmojis.map((emoji, idx) => generateAvatarUrl(emoji, pastelColors[idx % pastelColors.length]));
+    const isTeacher = user?.email?.toLowerCase() === "chaesang@korea.kr";
+    
+    const AVATARS = isTeacher 
+      ? [
+          generateAvatarUrl("👑", "fef08a"),
+          generateAvatarUrl("👨‍🏫", "bfdbfe"),
+          generateAvatarUrl("👩‍🏫", "fbcfe8"),
+          generateAvatarUrl("🎓", "fed7aa"),
+          generateAvatarUrl("🌟", "fef08a"),
+          ...animalEmojis.map((emoji, idx) => generateAvatarUrl(emoji, pastelColors[idx % pastelColors.length]))
+        ]
+      : animalEmojis.map((emoji, idx) => generateAvatarUrl(emoji, pastelColors[idx % pastelColors.length]));
 
     const handleSelectAvatar = async (url: string) => {
         if (updateUserProfile) {
@@ -65,6 +100,12 @@ export default function Navbar() {
                 </Link>
                 <div className={styles.separator} />
                 <div className={styles.userInfo}>
+                    {isTeacher && (
+                        <button onClick={() => setIsAdminModalOpen(true)} className={styles.adminNavBtn} title="학생 관리">
+                            <ShieldAlert size={18} />
+                            <span className={styles.btnText}>학생 관리</span>
+                        </button>
+                    )}
                     <div className={styles.profileBtn} onClick={() => setIsProfileModalOpen(true)} title="프로필 이미지 변경">
                         {user.photoURL ? (
                             <img src={user.photoURL} alt="profile" className={styles.profileImg} />
@@ -103,6 +144,35 @@ export default function Navbar() {
                             ))}
                         </div>
                         <p className={styles.modalTip}>마음에 드는 프로필을 클릭해보세요! 💕</p>
+                    </div>
+                </div>
+            )}
+
+            {isAdminModalOpen && (
+                <div className={styles.modalOverlay} onClick={() => setIsAdminModalOpen(false)}>
+                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                            <h3>⚙️ 학생 관리 (정지 목록)</h3>
+                            <button onClick={() => setIsAdminModalOpen(false)}><X size={24} /></button>
+                        </div>
+                        <div className={styles.bannedList}>
+                            {bannedUsers.length === 0 ? (
+                                <p className={styles.emptyText}>현재 정지된 학생이 없습니다.</p>
+                            ) : (
+                                bannedUsers.map(bUser => (
+                                    <div key={bUser.id} className={styles.bannedItem}>
+                                        <div className={styles.bannedInfo}>
+                                            <span className={styles.bannedName}>{bUser.userName}</span>
+                                            <span className={styles.bannedDate}>정지일: {bUser.bannedAt?.toDate().toLocaleDateString()}</span>
+                                        </div>
+                                        <button onClick={() => handleUnban(bUser.id)} className={styles.unbanBtn}>
+                                            <CheckCircle size={16} />
+                                            <span>정지 해제</span>
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

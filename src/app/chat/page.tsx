@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, orderBy, onSnapshot, Timestamp, limit, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, query, orderBy, onSnapshot, Timestamp, limit, deleteDoc, doc, setDoc } from "firebase/firestore";
 import { toast } from "react-hot-toast";
 import styles from "./chat.module.css";
-import { Send, Smile, User as UserIcon, ChevronLeft, Trash2, Info } from "lucide-react";
+import { Send, Smile, User as UserIcon, ChevronLeft, Trash2, Info, Ban } from "lucide-react";
 import Link from "next/link";
 
 export default function ChatPage() {
-    const { user } = useAuth();
+    const { user, isBanned } = useAuth();
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -66,23 +66,42 @@ export default function ChatPage() {
         }
     };
 
+    const handleBanUser = async (targetUserId: string, targetUserName: string) => {
+        if (!targetUserId) {
+            toast.error("알 수 없는 사용자입니다.");
+            return;
+        }
+        if (!confirm(`${targetUserName} 학생의 글쓰기 권한을 정말 정지하시겠습니까?`)) return;
+        try {
+            await setDoc(doc(db, "bannedUsers", targetUserId), {
+                userName: targetUserName,
+                bannedAt: Timestamp.now()
+            });
+            toast.success(`${targetUserName} 학생이 정지되었습니다.`);
+        } catch (error) {
+            console.error(error);
+            toast.error("정지 실패");
+        }
+    };
+
     const isTeacher = user?.email?.toLowerCase() === "chaesang@korea.kr";
 
     return (
         <div className={styles.container}>
-            <Link href="/" className={styles.backBtn}>
-                <ChevronLeft size={20} />
-                <span>홈으로 가기</span>
-            </Link>
-
-            <header className={styles.header}>
-                <h1>💬 우리들의 수다방</h1>
-                <p>5학년 1반 친구들의 실시간 오픈채팅공간입니다.</p>
-            </header>
+            <div className={styles.header}>
+                <Link href="/" className={styles.backBtn}>
+                    <ChevronLeft size={20} />
+                    홈으로 가기
+                </Link>
+                <h1>💬 5-1 오픈채팅방</h1>
+            </div>
 
             <div className={styles.stickyNotice}>
                 <Info size={18} className={styles.noticeIcon} />
-                <p>내가 사용하는 말은 친구들에게 보이는 나의 모습입니다. 언어 예절을 지키며 대화해요. 💖</p>
+                <span>
+                    내가 사용하는 말은 나의 이미지를 만듭니다. 언어 예절을 지키며 대화해요.<br />
+                    <span style={{ color: '#dc2626', fontWeight: 'bold' }}>🚨 온라인 예절을 지키지 않을 경우, 사용이 제한될 수 있습니다.</span>
+                </span>
             </div>
 
             <div className={styles.chatWrapper}>
@@ -110,14 +129,23 @@ export default function ChatPage() {
                                     <span className={styles.time}>
                                         {msg.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
-                                    {isTeacher && (
-                                        <button
-                                            onClick={() => handleDeleteMessage(msg.id)}
-                                            className={styles.msgDeleteBtn}
-                                            title="메시지 삭제"
-                                        >
-                                            <Trash2 size={12} />
-                                        </button>
+                                    {isTeacher && msg.userId && (
+                                        <div className={styles.adminActions}>
+                                            <button
+                                                onClick={() => handleBanUser(msg.userId, msg.userName)}
+                                                className={styles.msgBanBtn}
+                                                title="작성자 정지"
+                                            >
+                                                <Ban size={12} /> <span>정지</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteMessage(msg.id)}
+                                                className={styles.msgDeleteBtn}
+                                                title="메시지 삭제"
+                                            >
+                                                <Trash2 size={12} /> <span>삭제</span>
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -133,10 +161,11 @@ export default function ChatPage() {
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="친구들에게 메시지를 보내보세요!"
+                        placeholder={isBanned ? "⚠️ 홈페이지 규칙 위반으로 글쓰기가 제한되었습니다." : "친구들에게 메시지를 보내보세요!"}
+                        disabled={isBanned}
                         required
                     />
-                    <button type="submit" className={styles.sendBtn} disabled={!newMessage.trim()}>
+                    <button type="submit" className={styles.sendBtn} disabled={!newMessage.trim() || isBanned}>
                         <Send size={20} />
                     </button>
                 </form>

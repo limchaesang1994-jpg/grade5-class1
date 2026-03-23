@@ -5,16 +5,17 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet, Gift, User as UserIcon } from "lucide-react";
+import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore";
+import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet, Gift, User as UserIcon, Ban, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { studentData, Student } from "@/students";
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, isBanned } = useAuth();
   const [notices, setNotices] = useState<any[]>([]);
   const [lunch, setLunch] = useState<any>(null);
   const [learning, setLearning] = useState<any[]>([]);
+  const [oliveOilScore, setOliveOilScore] = useState(0);
 
   // Birthday states
   const [birthdayMessages, setBirthdayMessages] = useState<any[]>([]);
@@ -104,8 +105,6 @@ export default function Home() {
       }
     };
 
-    fetchLunch();
-
     // Real-time listener for Learning
     const qLearning = query(collection(db, "learning"), orderBy("period", "asc"));
     const unsubscribeLearning = onSnapshot(qLearning, (snapshot) => {
@@ -113,9 +112,20 @@ export default function Home() {
       setLearning(data);
     });
 
+    // Real-time listener for Olive Oil Score
+    const unsubscribeScore = onSnapshot(doc(db, "settings", "class_score"), (snapshot) => {
+      if (snapshot.exists()) {
+        setOliveOilScore(snapshot.data().score || 0);
+      } else {
+        // Initialize if not exists
+        setDoc(doc(db, "settings", "class_score"), { score: 0 });
+      }
+    });
+
     return () => {
       unsubscribeNotice();
       unsubscribeLearning();
+      unsubscribeScore();
     };
   }, []);
 
@@ -217,6 +227,7 @@ export default function Home() {
     try {
       await addDoc(collection(db, "birthdayMessages"), {
         content: bdayMessageInput.trim(),
+        userId: user?.uid || null,
         author: user?.email?.toLowerCase() === "chaesang@korea.kr" ? "선생님" : (user?.displayName || user?.email?.split('@')[0] || "익명"),
         userPhoto: user?.photoURL || null,
         createdAt: Timestamp.now(),
@@ -229,15 +240,53 @@ export default function Home() {
     }
   };
 
-  const handleDeleteBirthdayMessage = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm("정말 이 축하 메시지를 삭제하시겠습니까?")) {
-      try {
-        await deleteDoc(doc(db, "birthdayMessages", id));
-        toast.success("메시지가 삭제되었습니다.");
-      } catch (error) {
-        toast.error("삭제 실패");
+  const handleDeleteBirthdayMessage = async (msgId: string) => {
+    if (!confirm("이 축하 메시지를 삭제하시겠습니까?")) return;
+    try {
+      await deleteDoc(doc(db, "birthdayMessages", msgId));
+      toast.success("삭제되었습니다.");
+    } catch (e) {
+      toast.error("삭제 실패");
+    }
+  };
+
+  const handleBanUserFromBday = async (targetUserId: string, targetUserName: string) => {
+      if (!targetUserId) {
+          toast.error("⚠️ 시스템 업데이트 이전의 글은 작성자를 정지할 수 없습니다.");
+          return;
       }
+      if (!confirm(`${targetUserName} 학생의 글쓰기 권한을 정말 정지하시겠습니까?`)) return;
+      try {
+          await setDoc(doc(db, "bannedUsers", targetUserId), {
+              userName: targetUserName,
+              bannedAt: Timestamp.now()
+          });
+          toast.success(`${targetUserName} 학생이 정지되었습니다.`);
+      } catch (error) {
+          console.error(error);
+          toast.error("정지 실패");
+      }
+  };
+
+  const handleIncrementScore = async () => {
+    try {
+      await updateDoc(doc(db, "settings", "class_score"), {
+        score: oliveOilScore + 1
+      });
+    } catch (error) {
+      console.error("Score update failed:", error);
+      toast.error("점수 업데이트 실패");
+    }
+  };
+
+  const handleDecrementScore = async () => {
+    try {
+      await updateDoc(doc(db, "settings", "class_score"), {
+        score: Math.max(0, oliveOilScore - 1)
+      });
+    } catch (error) {
+      console.error("Score update failed:", error);
+      toast.error("점수 업데이트 실패");
     }
   };
 
@@ -276,13 +325,16 @@ export default function Home() {
             <form className={styles.birthdayForm} onSubmit={handleSaveBirthdayMessage}>
               <input
                 type="text"
-                className={styles.birthdayInput}
                 value={bdayMessageInput}
                 onChange={(e) => setBdayMessageInput(e.target.value)}
-                placeholder="축하 메시지를 입력하세요"
+                placeholder={isBanned ? "⚠️ 이용 규칙 위반으로 글쓰기 제한됨" : "축하 메시지를 남겨주세요!"}
+                className={styles.birthdayInput}
+                disabled={isBanned}
                 required
               />
-              <button type="submit" className={styles.birthdaySubmitBtn}>축하해요!</button>
+              <button type="submit" className={styles.birthdaySubmitBtn} disabled={!bdayMessageInput.trim() || isBanned}>
+                축하해요!
+              </button>
             </form>
             <div className={styles.birthdayMessagesList}>
               {birthdayMessages.map((msg) => (
@@ -303,13 +355,20 @@ export default function Home() {
                     </div>
                   </div>
                   {isTeacher && (
-                    <button
-                      onClick={(e) => handleDeleteBirthdayMessage(msg.id, e)}
-                      className={styles.deleteBdayBtn}
-                      title="삭제"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className={styles.adminActions}>
+                      <button
+                        onClick={() => handleBanUserFromBday(msg.userId, msg.author)}
+                        className={styles.bdayBanBtn}
+                      >
+                        <Ban size={14} /> 작성자 정지
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBirthdayMessage(msg.id)}
+                        className={styles.bdayDeleteBtn}
+                      >
+                        <Trash2 size={14} /> 메시지 삭제
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
@@ -332,7 +391,6 @@ export default function Home() {
               </div>
               <span className={styles.shortcutName}>구글 클래스룸</span>
             </a>
-            
             <a 
               href="https://hi.goe.go.kr/" 
               target="_blank" 
@@ -344,6 +402,42 @@ export default function Home() {
               </div>
               <span className={styles.shortcutName}>하이러닝</span>
             </a>
+
+            <div className={`${styles.shortcutCard} ${styles.oliveOilCard}`}>
+              <div className={styles.oliveOilImgWrapper}>
+                <Image 
+                  src="/olive_oil.png" 
+                  alt="Olive Oil Character" 
+                  width={150} 
+                  height={150} 
+                  className={styles.oliveOilImage} 
+                />
+              </div>
+              <div className={styles.oliveOilContent}>
+                <div className={styles.scoreRow}>
+                  <span className={styles.scoreLabel}>우리의 온도</span>
+                  <span className={styles.scoreValue}>{oliveOilScore}℃</span>
+                </div>
+                {isTeacher && (
+                  <div className={styles.scoreActions}>
+                    <button 
+                      onClick={handleIncrementScore} 
+                      className={styles.scoreArrowBtn}
+                      title="온도 올리기"
+                    >
+                      <ChevronUp size={24} />
+                    </button>
+                    <button 
+                      onClick={handleDecrementScore} 
+                      className={styles.scoreArrowBtn}
+                      title="온도 내리기"
+                    >
+                      <ChevronDown size={24} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </section>
 

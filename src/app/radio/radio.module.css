@@ -130,25 +130,46 @@
   color: #888;
 }
 
-.deleteRadioBtn {
-  background: white;
-  border: 1px solid #ffcccc;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
+.adminActions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ff6b6b;
-  cursor: pointer;
-  transition: all 0.2s;
+  flex-direction: column;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
 
-.deleteRadioBtn:hover {
-  background-color: #ff6b6b;
+.banBtn, .deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 120px;
+}
+
+.banBtn {
+  background-color: #fff7ed;
+  color: #ea580c;
+}
+
+.banBtn:hover {
+  background-color: #ea580c;
   color: white;
-  transform: scale(1.1);
+}
+
+.deleteBtn {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.deleteBtn:hover {
+  background-color: #dc2626;
+  color: white;
 }
 
 .emptyText {

@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import styles from "./radio.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, addDoc, Timestamp, deleteDoc, doc } from "firebase/firestore";
-import { Radio, Trash2, User as UserIcon } from "lucide-react";
+import { collection, query, orderBy, onSnapshot, addDoc, Timestamp, deleteDoc, doc, setDoc } from "firebase/firestore";
+import { Radio, Trash2, User as UserIcon, Ban } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function RadioPage() {
-  const { user } = useAuth();
+  const { user, isBanned } = useAuth();
   const [radioRequests, setRadioRequests] = useState<any[]>([]);
   const [radioInput, setRadioInput] = useState("");
 
@@ -32,6 +32,7 @@ export default function RadioPage() {
     try {
       await addDoc(collection(db, "radio"), {
         content: radioInput.trim(),
+        userId: user?.uid || null,
         author: user?.email?.toLowerCase() === "chaesang@korea.kr" ? "선생님" : (user?.displayName || user?.email?.split('@')[0] || "익명"),
         userPhoto: user?.photoURL || null,
         createdAt: Timestamp.now(),
@@ -45,14 +46,32 @@ export default function RadioPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("정말 이 신청곡을 삭제하시겠습니까?")) {
-      try {
-        await deleteDoc(doc(db, "radio", id));
-        toast.success("삭제되었습니다.");
-      } catch (error) {
-        toast.error("삭제 실패");
-      }
+    if (!confirm("정말 이 신청곡을 삭제하시겠습니까?")) return;
+    try {
+      await deleteDoc(doc(db, "radio", id));
+      toast.success("신청곡이 삭제되었습니다.");
+    } catch (error) {
+      console.error(error);
+      toast.error("삭제 실패");
     }
+  };
+
+  const handleBanUser = async (targetUserId: string, targetUserName: string) => {
+      if (!targetUserId) {
+          toast.error("⚠️ 시스템 업데이트 이전의 글은 작성자를 정지할 수 없습니다.");
+          return;
+      }
+      if (!confirm(`${targetUserName} 학생의 글쓰기 권한을 정말 정지하시겠습니까?`)) return;
+      try {
+          await setDoc(doc(db, "bannedUsers", targetUserId), {
+              userName: targetUserName,
+              bannedAt: Timestamp.now()
+          });
+          toast.success(`${targetUserName} 학생이 정지되었습니다.`);
+      } catch (error) {
+          console.error(error);
+          toast.error("정지 실패");
+      }
   };
 
   if (!user) return null;
@@ -78,10 +97,11 @@ export default function RadioPage() {
               className={styles.radioInput}
               value={radioInput}
               onChange={(e) => setRadioInput(e.target.value)}
-              placeholder="[곡 제목 / 가수]를 입력해주세요"
+              placeholder={isBanned ? "⚠️ 이용 규칙 위반으로 글쓰기가 제한되었습니다." : "🎵 듣고 싶은 노래 제목과 가수를 적어주세요!"}
+              disabled={isBanned}
               required
             />
-            <button type="submit" className={styles.radioSubmitBtn}>신청하기</button>
+            <button type="submit" className={styles.radioSubmitBtn} disabled={!radioInput.trim() || isBanned}>신청하기</button>
           </form>
 
           <div className={styles.radioList}>
@@ -104,13 +124,20 @@ export default function RadioPage() {
                     </div>
                   </div>
                   {isTeacher && (
-                    <button
-                      onClick={() => handleDelete(req.id)}
-                      className={styles.deleteRadioBtn}
-                      title="삭제"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className={styles.adminActions}>
+                      <button
+                        onClick={() => handleBanUser(req.userId, req.author)}
+                        className={styles.banBtn}
+                      >
+                        <Ban size={14} /> 작성자 정지
+                      </button>
+                      <button
+                        onClick={() => handleDelete(req.id)}
+                        className={styles.deleteBtn}
+                      >
+                        <Trash2 size={14} /> 게시물 삭제
+                      </button>
+                    </div>
                   )}
                 </div>
               ))

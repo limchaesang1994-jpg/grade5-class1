@@ -2,12 +2,14 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User, signOut, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useRouter, usePathname } from "next/navigation";
 
 interface AuthContextType {
     user: User | null;
     loading: boolean;
+    isBanned: boolean;
     logout: () => Promise<void>;
     updateUserProfile?: (photoURL: string) => Promise<void>;
 }
@@ -15,31 +17,45 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
+    isBanned: false,
     logout: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isBanned, setIsBanned] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
+        let unsubBan: () => void;
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                unsubBan = onSnapshot(doc(db, "bannedUsers", currentUser.uid), (docSnap) => {
+                    setIsBanned(docSnap.exists());
+                });
+            } else {
+                setIsBanned(false);
+                if (unsubBan) unsubBan();
+            }
             setLoading(false);
 
             // Handle protected routes
             if (!loading) {
-                if (!user && pathname !== "/login") {
+                if (!currentUser && pathname !== "/login") {
                     router.push("/login");
-                } else if (user && pathname === "/login") {
+                } else if (currentUser && pathname === "/login") {
                     router.push("/");
                 }
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            if (unsubBan) unsubBan();
+        };
     }, [loading, pathname, router]);
 
     const logout = async () => {
@@ -55,7 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, logout, updateUserProfile }}>
+        <AuthContext.Provider value={{ user, loading, isBanned, logout, updateUserProfile }}>
             {!loading && children}
         </AuthContext.Provider>
     );
