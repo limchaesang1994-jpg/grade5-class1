@@ -34,7 +34,9 @@ export default function Navbar() {
                 </Link>
                 <div className={styles.separator} />
                 <div className={styles.userInfo}>
-                    <span className={styles.userName}>{user.displayName || user.email?.split('@')[0]} 친구</span>
+                    <span className={styles.userName}>
+                        {user.email?.toLowerCase() === "chaesang@korea.kr" ? "임채상 선생님" : `${user.displayName || user.email?.split('@')[0]} 친구`}
+                    </span>
                     <button onClick={logout} className={styles.logoutBtn}>
                         <LogOut size={18} />
                         <span>로그아웃</span>

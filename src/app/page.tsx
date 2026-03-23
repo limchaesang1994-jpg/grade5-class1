@@ -217,7 +217,7 @@ export default function Home() {
     try {
       await addDoc(collection(db, "birthdayMessages"), {
         content: bdayMessageInput.trim(),
-        author: user?.displayName || user?.email?.split('@')[0] || "익명",
+        author: user?.email?.toLowerCase() === "chaesang@korea.kr" ? "선생님" : (user?.displayName || user?.email?.split('@')[0] || "익명"),
         createdAt: Timestamp.now(),
       });
       toast.success("축하 메시지가 등록되었습니다! 🎂");
@@ -288,7 +288,9 @@ export default function Home() {
                 <div key={msg.id} className={styles.birthdayMessageItem}>
                   <div className={styles.birthdayMessageContent}>
                     <span className={styles.bdayText}>{msg.content}</span>
-                    <span className={styles.bdayAuthor}>- {msg.author}</span>
+                    <span className={styles.bdayAuthor}>
+                      - {msg.author === "선생님" || msg.author === "chaesang" ? "임채상 선생님" : `${msg.author} 친구`}
+                    </span>
                   </div>
                   {isTeacher && (
                     <button

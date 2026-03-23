@@ -32,7 +32,7 @@ export default function RadioPage() {
     try {
       await addDoc(collection(db, "radio"), {
         content: radioInput.trim(),
-        author: user?.displayName || user?.email?.split('@')[0] || "익명",
+        author: user?.email?.toLowerCase() === "chaesang@korea.kr" ? "선생님" : (user?.displayName || user?.email?.split('@')[0] || "익명"),
         createdAt: Timestamp.now(),
       });
       toast.success("신청곡이 등록되었습니다! 🎵");
@@ -89,7 +89,9 @@ export default function RadioPage() {
                 <div key={req.id} className={styles.radioItem}>
                   <div className={styles.radioContent}>
                     <span className={styles.radioText}>{req.content}</span>
-                    <span className={styles.radioAuthor}>- {req.author} 친구</span>
+                    <span className={styles.radioAuthor}>
+                      - {req.author === "선생님" || req.author === "chaesang" ? "임채상 선생님" : `${req.author} 친구`}
+                    </span>
                   </div>
                   {isTeacher && (
                     <button

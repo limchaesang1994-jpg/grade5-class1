@@ -44,7 +44,7 @@ export default function ChatPage() {
             await addDoc(collection(db, "chats"), {
                 text: newMessage,
                 userId: user.uid,
-                userName: user.displayName || user.email?.split("@")[0],
+                userName: user.email?.toLowerCase() === "chaesang@korea.kr" ? "선생님" : (user.displayName || user.email?.split("@")[0] || "익명"),
                 userPhoto: user.photoURL,
                 createdAt: Timestamp.now(),
             });
@@ -102,7 +102,9 @@ export default function ChatPage() {
                                 )}
                             </div>
                             <div className={styles.content}>
-                                <span className={styles.userName}>{msg.userName}</span>
+                                <span className={styles.userName}>
+                                  {msg.userName === "선생님" || msg.userName === "chaesang" ? "임채상 선생님" : `${msg.userName} 친구`}
+                                </span>
                                 <div className={styles.bubble}>
                                     <p>{msg.text}</p>
                                     <span className={styles.time}>
