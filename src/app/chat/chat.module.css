@@ -170,6 +170,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
+    min-width: 0;
 }
 
 .userName {
@@ -192,6 +193,8 @@
     border-radius: 20px;
     border-top-left-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .myMessage .bubble {
