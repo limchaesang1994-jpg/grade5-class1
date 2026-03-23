@@ -410,7 +410,6 @@ export default function Home() {
                 <p key={i}>{item}</p>
               ))}
             </div>
-            <button className={styles.moreBtn}>주간 식단표</button>
           </div>
 
 
@@ -452,7 +451,6 @@ export default function Home() {
                 <p className={styles.emptyText}>학습 일정이 없어요.</p>
               )}
             </div>
-            <button className={styles.moreBtn}>학습 안내서</button>
           </div>
         </div>
 
