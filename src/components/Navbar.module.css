@@ -230,3 +230,28 @@
     font-size: 0.95rem;
     margin: 0;
 }
+
+/* Extra Mobile Adjustments */
+@media (max-width: 768px) {
+    .avatarGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .avatarGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .modal {
+        padding: 1.5rem;
+    }
+    
+    .navLinks {
+        gap: 0.8rem;
+    }
+    
+    .navItem span {
+        font-size: 0.9rem;
+    }
+}

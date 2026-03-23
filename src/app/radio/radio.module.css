@@ -205,3 +205,13 @@
     padding: 2rem 5%;
   }
 }
+
+@media (max-width: 480px) {
+  .radioItemLeft {
+    align-items: flex-start;
+  }
+  
+  .radioItem {
+    align-items: flex-start;
+  }
+}

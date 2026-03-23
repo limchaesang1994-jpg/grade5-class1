@@ -922,3 +922,84 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* Comprehensive Mobile Responsiveness */
+@media (max-width: 1024px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .shortcutsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .chalkboardModal {
+    padding: 1.5rem 1.5rem 2rem 1.5rem;
+  }
+
+  .chalkboardHeader h3 {
+    font-size: 2rem;
+  }
+
+  .chalkboardDate {
+    font-size: 1.8rem;
+  }
+
+  .chalkboardTextarea {
+    font-size: 2.2rem;
+  }
+
+  .title {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .birthdayForm {
+    flex-direction: column;
+  }
+
+  .birthdaySubmitBtn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .modal {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .shortcutsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chalkboardTextarea {
+    font-size: 1.8rem;
+  }
+
+  .chalkboardHeader h3 {
+    font-size: 1.5rem;
+  }
+
+  .chalkboardDate {
+    font-size: 1.5rem;
+  }
+
+  .chalkboardSaveBtn {
+    font-size: 1.5rem;
+    padding: 0.8rem 1.5rem;
+    width: 100%;
+    margin-top: 1rem;
+  }
+}
