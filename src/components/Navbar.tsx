@@ -3,12 +3,43 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import styles from "./Navbar.module.css";
-import { GraduationCap, Send, MessageCircle, LogOut, Radio } from "lucide-react";
+import { GraduationCap, Send, MessageCircle, LogOut, Radio, User as UserIcon, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export default function Navbar() {
-    const { user, logout } = useAuth();
+    const { user, logout, updateUserProfile } = useAuth();
     const pathname = usePathname();
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+    const animalEmojis = [
+        "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨",
+        "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🦍", "🦧", "🐥", "🦉",
+        "🐺", "🐗", "🦝", "🦇", "🐙", "🦑", "🦀", "🐡", "🦥", "🦦",
+        "🐝", "🐛", "🦋", "🐞", "🕷️", "🪲", "🦠", "🐍", "🦭", "🦚",
+        "🐲", "🙈", "🙉", "🙊", "😺", "😸", "😹", "😻", "😼", "😽",
+        "🙀", "😿", "😾", "🧸", "⛄", "👽", "👾", "🤖", "👻", "🤡"
+    ];
+
+    const pastelColors = [
+        "fca5a5", "fdba74", "fcd34d", "fef08a", "d9f99d", "bbf7d0", 
+        "86efac", "5eead4", "7dd3fc", "93c5fd", "a5b4fc", "c4b5fd", 
+        "d8b4fe", "f0abfc", "f9a8d4", "fda4af"
+    ];
+
+    const generateAvatarUrl = (emoji: string, color: string) => {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#${color}"/><text x="50" y="50" font-size="60" text-anchor="middle" dy=".35em">${emoji}</text></svg>`;
+        return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    };
+
+    const AVATARS = animalEmojis.map((emoji, idx) => generateAvatarUrl(emoji, pastelColors[idx % pastelColors.length]));
+
+    const handleSelectAvatar = async (url: string) => {
+        if (updateUserProfile) {
+            await updateUserProfile(url);
+            setIsProfileModalOpen(false);
+        }
+    };
 
     if (!user) return null;
 
@@ -34,6 +65,15 @@ export default function Navbar() {
                 </Link>
                 <div className={styles.separator} />
                 <div className={styles.userInfo}>
+                    <div className={styles.profileBtn} onClick={() => setIsProfileModalOpen(true)} title="프로필 이미지 변경">
+                        {user.photoURL ? (
+                            <img src={user.photoURL} alt="profile" className={styles.profileImg} />
+                        ) : (
+                            <div className={styles.profilePlaceholder}>
+                                <UserIcon size={20} />
+                            </div>
+                        )}
+                    </div>
                     <span className={styles.userName}>
                         {user.email?.toLowerCase() === "chaesang@korea.kr" ? "임채상 선생님" : `${user.displayName || user.email?.split('@')[0]} 친구`}
                     </span>
@@ -43,6 +83,29 @@ export default function Navbar() {
                     </button>
                 </div>
             </div>
+
+            {isProfileModalOpen && (
+                <div className={styles.modalOverlay} onClick={() => setIsProfileModalOpen(false)}>
+                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                            <h3>나만의 프로필 이미지 고르기</h3>
+                            <button onClick={() => setIsProfileModalOpen(false)}><X size={24} /></button>
+                        </div>
+                        <div className={styles.avatarGrid}>
+                            {AVATARS.map((url, idx) => (
+                                <img 
+                                    key={idx} 
+                                    src={url} 
+                                    alt={`avatar-${idx}`} 
+                                    className={`${styles.avatarOption} ${user.photoURL === url ? styles.selectedAvatar : ''}`}
+                                    onClick={() => handleSelectAvatar(url)}
+                                />
+                            ))}
+                        </div>
+                        <p className={styles.modalTip}>마음에 드는 프로필을 클릭해보세요! 💕</p>
+                    </div>
+                </div>
+            )}
         </nav>
     );
 }

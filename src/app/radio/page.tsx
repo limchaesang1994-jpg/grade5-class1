@@ -5,7 +5,7 @@ import styles from "./radio.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, addDoc, Timestamp, deleteDoc, doc } from "firebase/firestore";
-import { Radio, Trash2 } from "lucide-react";
+import { Radio, Trash2, User as UserIcon } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function RadioPage() {
@@ -33,6 +33,7 @@ export default function RadioPage() {
       await addDoc(collection(db, "radio"), {
         content: radioInput.trim(),
         author: user?.email?.toLowerCase() === "chaesang@korea.kr" ? "선생님" : (user?.displayName || user?.email?.split('@')[0] || "익명"),
+        userPhoto: user?.photoURL || null,
         createdAt: Timestamp.now(),
       });
       toast.success("신청곡이 등록되었습니다! 🎵");
@@ -87,11 +88,20 @@ export default function RadioPage() {
             {radioRequests.length > 0 ? (
               radioRequests.map((req) => (
                 <div key={req.id} className={styles.radioItem}>
-                  <div className={styles.radioContent}>
-                    <span className={styles.radioText}>{req.content}</span>
-                    <span className={styles.radioAuthor}>
-                      - {req.author === "선생님" || req.author === "chaesang" ? "임채상 선생님" : `${req.author} 친구`}
-                    </span>
+                  <div className={styles.radioItemLeft}>
+                    <div className={styles.radioProfile}>
+                      {req.userPhoto ? (
+                        <img src={req.userPhoto} alt="profile" />
+                      ) : (
+                        <div className={styles.avatarFallback}><UserIcon size={20} /></div>
+                      )}
+                    </div>
+                    <div className={styles.radioContent}>
+                      <span className={styles.radioText}>{req.content}</span>
+                      <span className={styles.radioAuthor}>
+                        - {req.author === "선생님" || req.author === "chaesang" ? "임채상 선생님" : `${req.author} 친구`}
+                      </span>
+                    </div>
                   </div>
                   {isTeacher && (
                     <button

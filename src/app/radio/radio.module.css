@@ -158,6 +158,36 @@
   font-size: 1.1rem;
 }
 
+.radioItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex: 1;
+}
+
+.radioProfile {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f8fafc;
+  border: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radioProfile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  color: #94a3b8;
+}
+
 @media (max-width: 768px) {
   .radioForm {
     flex-direction: column;

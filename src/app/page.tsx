@@ -6,7 +6,7 @@ import styles from "./page.module.css";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, limit, addDoc, Timestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet, Gift } from "lucide-react";
+import { Megaphone, Utensils, BookOpen, GraduationCap, Edit3, X, Trash2, Presentation, Tablet, Gift, User as UserIcon } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { studentData, Student } from "@/students";
 
@@ -218,6 +218,7 @@ export default function Home() {
       await addDoc(collection(db, "birthdayMessages"), {
         content: bdayMessageInput.trim(),
         author: user?.email?.toLowerCase() === "chaesang@korea.kr" ? "선생님" : (user?.displayName || user?.email?.split('@')[0] || "익명"),
+        userPhoto: user?.photoURL || null,
         createdAt: Timestamp.now(),
       });
       toast.success("축하 메시지가 등록되었습니다! 🎂");
@@ -286,11 +287,20 @@ export default function Home() {
             <div className={styles.birthdayMessagesList}>
               {birthdayMessages.map((msg) => (
                 <div key={msg.id} className={styles.birthdayMessageItem}>
-                  <div className={styles.birthdayMessageContent}>
-                    <span className={styles.bdayText}>{msg.content}</span>
-                    <span className={styles.bdayAuthor}>
-                      - {msg.author === "선생님" || msg.author === "chaesang" ? "임채상 선생님" : `${msg.author} 친구`}
-                    </span>
+                  <div className={styles.bdayItemLeft}>
+                    <div className={styles.bdayProfile}>
+                      {msg.userPhoto ? (
+                        <img src={msg.userPhoto} alt="profile" />
+                      ) : (
+                        <div className={styles.avatarFallback}><UserIcon size={20} /></div>
+                      )}
+                    </div>
+                    <div className={styles.birthdayMessageContent}>
+                      <span className={styles.bdayText}>{msg.content}</span>
+                      <span className={styles.bdayAuthor}>
+                        - {msg.author === "선생님" || msg.author === "chaesang" ? "임채상 선생님" : `${msg.author} 친구`}
+                      </span>
+                    </div>
                   </div>
                   {isTeacher && (
                     <button

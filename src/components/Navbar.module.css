@@ -115,3 +115,118 @@
         flex-wrap: wrap;
     }
 }
+
+/* Profile Modal & Buttons */
+.profileBtn {
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.profileBtn:hover {
+    transform: scale(1.1);
+}
+
+.profileImg {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    object-fit: cover;
+}
+
+.profilePlaceholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modalHeader h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3rem;
+}
+
+.modalHeader button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+}
+
+.modalHeader button:hover {
+    color: #333;
+}
+
+.avatarGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+}
+
+.avatarOption {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: #f8fafc;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+    padding: 0.5rem;
+}
+
+.avatarOption:hover {
+    transform: scale(1.1);
+    background-color: #f1f5f9;
+}
+
+.selectedAvatar {
+    border-color: var(--primary);
+    background-color: #fff1f2;
+}
+
+.modalTip {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+}
