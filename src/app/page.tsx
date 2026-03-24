@@ -77,7 +77,10 @@ export default function Home() {
       }
 
       const today = new Date();
-      const yyyymmdd = today.toISOString().split('T')[0].replace(/-/g, '');
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const yyyymmdd = `${year}${month}${day}`;
       const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${apiKey}&Type=json&ATPT_OFCDC_SC_CODE=${officeCode}&SD_SCHUL_CODE=${schoolCode}&MLSV_YMD=${yyyymmdd}`;
 
       try {
@@ -104,6 +107,8 @@ export default function Home() {
         setLunch({ menu: ["급식 정보를 가져오지 못했어요 ㅠ_ㅠ"], isEmpty: false });
       }
     };
+
+    fetchLunch();
 
     // Real-time listener for Learning
     const qLearning = query(collection(db, "learning"), orderBy("period", "asc"));
